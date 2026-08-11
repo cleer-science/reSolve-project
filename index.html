@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>reSolve — Self-Evolving Skills via Surrogate-Guided Solve-and-Reproduce</title>
+<meta name="description" content="reSolve is a per-task, oracle-in-the-loop framework for self-evolving agent skills. A cheap model reaches 74.9% mean-of-3 on SkillsBench, +14.8 points over the curated baseline.">
+<meta property="og:title" content="reSolve — Self-Evolving Skills via Surrogate-Guided Solve-and-Reproduce">
+<meta property="og:description" content="Solve-and-reproduce, a blind surrogate verifier, and verifier-guided beam search let a cheap model self-evolve skills that beat curated ones on SkillsBench.">
+<meta property="og:image" content="assets/figures/arch.png">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%230E5F51'/><text x='50' y='68' font-size='52' font-family='Georgia,serif' fill='white' text-anchor='middle'>rS</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #FBFBF9;
+    --ink: #1C2422;
+    --muted: #5D6B66;
+    --faint: #8B9793;
+    --rule: #E3E9E6;
+    --accent: #0E5F51;
+    --accent-deep: #0A4A3F;
+    --tint: #EDF6F4;          /* seedtint — the reSolve row color from the paper */
+    --gold-bg: #FFF2CC;       /* leaderboard medal tints, verbatim from the paper */
+    --gold-ink: #7A611B;
+    --silver-bg: #E9EBEE;
+    --bronze-bg: #FBE2CB;
+    --bar-1: #B9CFC9;         /* sequential teal ladder, light → dark */
+    --bar-2: #55897B;
+    --bar-3: #0E5F51;
+    --serif: "Newsreader", Georgia, "Times New Roman", serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-optical-sizing: auto;
+    font-size: 1.06rem;
+    line-height: 1.72;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection { background: var(--tint); color: var(--accent-deep); }
+
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 0.16em; }
+  a:hover { color: var(--accent-deep); }
+  a:focus-visible, button:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  .col { max-width: 46rem; margin: 0 auto; padding: 0 1.25rem; }
+  .wide { max-width: 66rem; margin: 0 auto; padding: 0 1.25rem; }
+
+  /* ============ hero ============ */
+  header.hero { padding: 5.5rem 0 3.5rem; text-align: center; }
+
+  h1.title {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(1.55rem, 4.6vw, 3.15rem);
+    line-height: 1.22;
+    letter-spacing: -0.012em;
+    margin: 0 auto;
+    text-wrap: balance;
+  }
+
+  /* the underlined letters spell the system's name */
+  .ltr {
+    position: relative;
+    color: var(--accent-deep);
+    white-space: nowrap;
+  }
+  .ltr::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0;
+    bottom: -0.1em;
+    height: 0.075em;
+    background: var(--accent);
+    border-radius: 1px;
+    transform: scaleX(0);
+    transform-origin: left center;
+    animation: draw 0.5s cubic-bezier(0.6, 0, 0.2, 1) forwards;
+  }
+  .ltr:nth-of-type(1)::after { animation-delay: 0.45s; }
+  .ltr:nth-of-type(2)::after { animation-delay: 0.75s; }
+  .ltr:nth-of-type(3)::after { animation-delay: 1.05s; }
+  @keyframes draw { to { transform: scaleX(1); } }
+  @media (prefers-reduced-motion: reduce) {
+    .ltr::after { transform: scaleX(1); }
+  }
+
+  .authors {
+    margin-top: 2.1rem;
+    font-size: 1.08rem;
+    line-height: 1.9;
+  }
+  .authors sup { font-size: 0.62em; color: var(--faint); margin-left: 1px; }
+  .affils {
+    margin-top: 0.35rem;
+    font-size: 0.94rem;
+    font-style: italic;
+    color: var(--muted);
+  }
+  .affils sup { font-size: 0.66em; font-style: normal; color: var(--faint); }
+  .contact {
+    font-family: var(--mono);
+    font-size: 0.76rem;
+    color: var(--faint);
+    margin-top: 0.7rem;
+  }
+  .contact a { color: var(--muted); }
+
+  .actions {
+    margin-top: 2.2rem;
+    display: flex;
+    justify-content: center;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+  }
+  .btn {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    padding: 0.68rem 1.25rem;
+    border-radius: 999px;
+    border: 1px solid var(--accent);
+    color: var(--accent-deep);
+    background: transparent;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background 0.18s ease, color 0.18s ease;
+  }
+  .btn.primary { background: var(--accent); color: #fff; }
+  .btn.primary:hover { background: var(--accent-deep); border-color: var(--accent-deep); }
+  .btn:not(.primary):hover { background: var(--tint); }
+
+  /* ============ sections ============ */
+  section { padding: 3.4rem 0; }
+  section + section { border-top: 1px solid var(--rule); }
+
+  .sec-label {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.6rem;
+  }
+
+  h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 1.75rem;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    margin-bottom: 1.1rem;
+  }
+  h3 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 1.12rem;
+    margin-bottom: 0.4rem;
+  }
+  p + p { margin-top: 1rem; }
+  .lede { font-size: 1.13rem; }
+  strong { font-weight: 600; }
+  em { font-style: italic; }
+
+  /* ============ at-a-glance chart ============ */
+  .glance { display: grid; grid-template-columns: 1fr; gap: 2.2rem; }
+  @media (min-width: 900px) {
+    .glance { grid-template-columns: 7fr 5fr; gap: 3.5rem; align-items: center; }
+  }
+
+  .chart-title {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin-bottom: 1.4rem;
+  }
+  .chart { position: relative; }
+  .bar-row + .bar-row { margin-top: 1.15rem; }
+  .bar-label {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--ink);
+    margin-bottom: 0.35rem;
+  }
+  .bar-label .sub { color: var(--faint); }
+  .track { display: flex; align-items: center; height: 26px; }
+  .bar {
+    height: 100%;
+    border-radius: 0 4px 4px 0;
+    flex: none;
+    width: 0;
+    animation: grow 0.9s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+  }
+  @keyframes grow { to { width: var(--w); } }
+  @media (prefers-reduced-motion: reduce) { .bar { width: var(--w); } }
+  .bar.b1 { background: var(--bar-1); animation-delay: 0.1s; }
+  .bar.b2 { background: var(--bar-2); animation-delay: 0.25s; }
+  .bar.b3 { background: var(--bar-3); animation-delay: 0.4s; }
+  .val {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--ink);
+    margin-left: 0.55rem;
+  }
+  .marker {
+    position: absolute;
+    top: 1.35rem;
+    bottom: -0.4rem;
+    left: var(--x);
+    border-left: 2px dashed #B08A2E;
+    pointer-events: none;
+  }
+  .marker-tag {
+    position: absolute;
+    top: 100%;
+    left: -0.4rem;
+    transform: translateX(-100%);
+    white-space: nowrap;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--gold-ink);
+    padding-top: 0.3rem;
+  }
+  .chart-foot {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--faint);
+    margin-top: 2.6rem;
+  }
+
+  .glance-notes { border-left: 2px solid var(--rule); padding-left: 1.5rem; }
+  .glance-notes p { font-size: 0.98rem; line-height: 1.62; }
+  .glance-notes p + p { margin-top: 0.9rem; }
+  .glance-notes .k { color: var(--accent-deep); font-weight: 600; }
+
+  /* ============ figures ============ */
+  figure { margin: 2.2rem 0 0; }
+  figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    background: #fff;
+    padding: 0.9rem;
+  }
+  figcaption {
+    font-family: var(--mono);
+    font-size: 0.73rem;
+    line-height: 1.6;
+    color: var(--muted);
+    margin-top: 0.7rem;
+    max-width: 56rem;
+  }
+  figcaption b { color: var(--ink); font-weight: 500; }
+  .fig-pair { display: grid; gap: 1.8rem; grid-template-columns: 1fr; margin-top: 2.2rem; }
+  @media (min-width: 820px) { .fig-pair { grid-template-columns: 1fr 1fr; } }
+  .fig-pair figure { margin: 0; }
+
+  /* ============ method cards ============ */
+  .components { display: grid; gap: 1.2rem; grid-template-columns: 1fr; margin-top: 2.4rem; }
+  @media (min-width: 820px) { .components { grid-template-columns: 1fr 1fr 1fr; } }
+  .card {
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 1.35rem 1.35rem 1.5rem;
+    background: #fff;
+  }
+  .card .tag {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 0.65rem;
+  }
+  .card p { font-size: 0.93rem; line-height: 1.62; color: var(--muted); }
+  .card p code { color: var(--ink); }
+  code {
+    font-family: var(--mono);
+    font-size: 0.86em;
+    background: var(--tint);
+    padding: 0.08em 0.35em;
+    border-radius: 4px;
+  }
+
+  /* ============ leaderboard table ============ */
+  .table-scroll { overflow-x: auto; margin-top: 2.2rem; border: 1px solid var(--rule); border-radius: 8px; background: #fff; }
+  table.board {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 640px;
+    font-size: 0.88rem;
+    line-height: 1.45;
+  }
+  table.board caption {
+    caption-side: top;
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    padding: 0.9rem 1.1rem 0.7rem;
+  }
+  .board th {
+    font-family: var(--mono);
+    font-weight: 500;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    padding: 0.55rem 0.9rem;
+    border-bottom: 1px solid var(--rule);
+    white-space: nowrap;
+  }
+  .board td {
+    padding: 0.42rem 0.9rem;
+    border-bottom: 1px solid var(--rule);
+    white-space: nowrap;
+  }
+  .board tbody tr:last-child td { border-bottom: none; }
+  .board td.num, .board th.num { text-align: right; font-family: var(--mono); font-size: 0.82rem; }
+  .board td.rank { color: var(--faint); font-family: var(--mono); font-size: 0.78rem; }
+  .board .medal-1 { background: var(--gold-bg); }
+  .board .medal-2 { background: var(--silver-bg); }
+  .board .medal-3 { background: var(--bronze-bg); }
+  .board tr.ours td { background: var(--tint); }
+  .board tr.ours td:first-child { border-left: 3px solid var(--accent); padding-left: calc(0.9rem - 3px); }
+  .board tr.ours .sys { font-weight: 600; color: var(--accent-deep); }
+  .board .ranknote { color: var(--faint); font-size: 0.68rem; margin-left: 0.3rem; }
+  .board tr.divider td {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--faint);
+    background: var(--paper);
+    padding-top: 0.7rem;
+  }
+  .board tr.fold { display: none; }
+  .board.expanded tr.fold { display: table-row; }
+  .board tr.gap td {
+    text-align: center;
+    color: var(--faint);
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    padding: 0.25rem;
+    letter-spacing: 0.3em;
+  }
+  .board.expanded tr.gap { display: none; }
+  .board-toggle {
+    display: block;
+    margin: 0.9rem auto 0;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+    background: none;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 0.45rem 1.1rem;
+    cursor: pointer;
+  }
+  .board-toggle:hover { border-color: var(--accent); color: var(--accent-deep); }
+
+  /* ============ ablation table ============ */
+  table.abl {
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 1.6rem;
+    font-size: 0.92rem;
+  }
+  .abl th {
+    font-family: var(--mono);
+    font-weight: 500;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--ink);
+  }
+  .abl td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--rule); }
+  .abl td.num, .abl th.num { text-align: right; font-family: var(--mono); font-size: 0.84rem; }
+  .abl td .ci { color: var(--faint); font-size: 0.76rem; margin-left: 0.4rem; }
+  .abl tr.full td { background: var(--tint); font-weight: 600; }
+
+  /* ============ callout ============ */
+  .callout {
+    background: var(--tint);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 1.2rem 1.5rem;
+    margin-top: 2.2rem;
+    font-size: 0.98rem;
+  }
+  .callout .tag {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 0.45rem;
+  }
+
+  /* ============ findings ============ */
+  .finding { margin-top: 2rem; }
+  .finding h3 { font-size: 1.14rem; }
+  .finding p { color: var(--ink); font-size: 1rem; }
+
+  /* ============ bibtex ============ */
+  .bib-wrap { position: relative; margin-top: 1.8rem; }
+  pre.bibtex {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    line-height: 1.65;
+    background: #fff;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 1.4rem 1.6rem;
+    overflow-x: auto;
+    color: var(--ink);
+  }
+  .copy-btn {
+    position: absolute;
+    top: 0.7rem;
+    right: 0.7rem;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 0.35rem 0.75rem;
+    cursor: pointer;
+  }
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent-deep); }
+
+  /* ============ footer ============ */
+  footer {
+    border-top: 1px solid var(--rule);
+    padding: 3.2rem 0 4rem;
+    text-align: center;
+  }
+  .logos {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2.6rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+  }
+  .logos img { height: 34px; width: auto; opacity: 0.85; }
+  .logos img.tall { height: 42px; }
+  footer .fine {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--faint);
+    line-height: 2;
+  }
+  footer .fine a { color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wide">
+    <h1 class="title">Self&#8209;Evolving Skills via Su<span class="ltr">r</span>rogat<span class="ltr">e</span>&#8209;Guided <span class="ltr">Solve</span>&#8209;and&#8209;Reproduce</h1>
+
+    <p class="authors">
+      Jiale&nbsp;Liu<sup>1,2</sup> &nbsp; Pinze&nbsp;Ren<sup>1,3</sup> &nbsp; Yuqi&nbsp;Xia<sup>3</sup> &nbsp; Huan&nbsp;Wang<sup>1</sup> &nbsp; Zhenlin&nbsp;Zhao<sup>1</sup> &nbsp; Siming&nbsp;Dong<sup>1</sup>
+    </p>
+    <p class="affils"><sup>1</sup>Cleer Science &nbsp;&nbsp; <sup>2</sup>The University of Edinburgh &nbsp;&nbsp; <sup>3</sup>Tsinghua University</p>
+    <p class="contact">{wanghuan, zhenlinzhao, william.d}@cleerlab.com</p>
+
+    <div class="actions">
+      <a class="btn primary" href="assets/reSolve-paper.pdf" download="reSolve-paper.pdf">Paper PDF</a>
+      <a class="btn" href="#bibtex">BibTeX</a>
+    </div>
+  </div>
+</header>
+
+<section id="glance">
+  <div class="wide">
+    <p class="sec-label">At a glance</p>
+    <div class="glance">
+      <div>
+        <p class="chart-title">SkillsBench v1.1 &middot; 86 tasks &middot; mean-of-3 reward, % &middot; DeepSeek-V4-Pro</p>
+        <div class="chart">
+          <div class="marker" style="--x: 84.1%;"><span class="marker-tag">best official curated result &middot; 67.3</span></div>
+          <div class="bar-row">
+            <p class="bar-label">No skill</p>
+            <div class="track"><span class="bar b1" style="--w: 38.3%;"></span><span class="val">30.6</span></div>
+          </div>
+          <div class="bar-row">
+            <p class="bar-label">Human-curated skill <span class="sub">(same harness)</span></p>
+            <div class="track"><span class="bar b2" style="--w: 75.1%;"></span><span class="val">60.1</span></div>
+          </div>
+          <div class="bar-row">
+            <p class="bar-label">reSolve self-evolved skill</p>
+            <div class="track"><span class="bar b3" style="--w: 93.6%;"></span><span class="val">74.9</span></div>
+          </div>
+        </div>
+        <p class="chart-foot">dashed line: strongest SkillsBench leaderboard entry with curated skills (GPT-5.5 / OpenHands), reported on a different harness</p>
+      </div>
+      <div class="glance-notes">
+        <p><span class="k">+14.8 points over curated.</span> Within a fixed harness, a cheap model self-evolves skills that beat the human-written packages it started from (95% CI [9.4,&nbsp;20.6]).</p>
+        <p><span class="k">A pass must reproduce.</span> Evolution certifies a frozen skill package only when a fresh agent in a fresh container re-derives the solution from it &mdash; not the lucky trajectory that authored it.</p>
+        <p><span class="k">The recipe transfers.</span> On Gemma&nbsp;4 31B, a 31B non-reasoning model, the same pipeline lifts 36.2% curated to 41.4%.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="abstract">
+  <div class="col">
+    <p class="sec-label">Abstract</p>
+    <p class="lede">Agent skills are portable packages of instructions and resources an agent consults at deployment. Self-evolving them fails in two ways today. First, skills evolved from scratch underperform human-curated ones and, on a weak model, using no skill at all. Second, an evolution-time pass records one lucky trajectory that a fresh stochastic agent often fails to reproduce at deployment. We present <strong>reSolve</strong>, a per-task, oracle-in-the-loop framework built on three components. It decouples interactive solving from a self-contained deliverable that is independently re-executed in a fresh container, a protocol we call <em>solve-and-reproduce</em>. It enhances the sparse reward signal with a surrogate verifier that cannot access hidden tests or reference answers. It then runs verifier-guided beam search over a solution-construction graph. Within a fixed harness, a cheap model self-evolves skills that reach <strong>74.9%</strong> mean-of-3, <strong>+14.8</strong> points over the 60.1% human-curated baseline, exceeding the strongest official curated-skill result (67.3%, GPT-5.5/OpenHands). We also report observed failure cases and domain-level results, including performance on the 14 Natural Science tasks, to clarify when the approach does and does not help.</p>
+  </div>
+</section>
+
+<section id="method">
+  <div class="wide">
+    <p class="sec-label">Method</p>
+    <div class="col" style="padding: 0; margin: 0; max-width: 46rem;">
+      <h2>Evolution should certify the deliverable, not the trajectory</h2>
+      <p>reSolve evolves one task-specific skill package at a time. Each round, a producer agent authors a candidate skill, the candidate is <em>frozen</em> and handed to a new agent in a fresh container, and the resulting files are evaluated. A full pass from the hidden grader ends the search; otherwise a blind surrogate verifier diagnoses defects and guides the next refinement. The frozen package is the sole channel between the agent that writes a skill and the agent that uses it &mdash; exactly the condition the skill must satisfy at deployment.</p>
+    </div>
+
+    <figure>
+      <img src="assets/figures/arch.png" alt="reSolve architecture: five stages from task and optional curated anchor, through interactive authoring, frozen re-execution in a fresh container, dual evaluation by a blind surrogate verifier and hidden grader, to beam-search control. Panels detail the surrogate check suite and the beam configuration.">
+      <figcaption><b>The five-stage solve-and-reproduce loop.</b> A candidate crosses the reproduction boundary into a fresh container before it is scored. Panel&nbsp;A: the blind verifier writes and runs executable checks. Panel&nbsp;B: the beam configuration (m=4, B=2, K=2, D=2; at most 12 evaluations per task).</figcaption>
+    </figure>
+
+    <div class="components">
+      <div class="card">
+        <span class="tag">01 &middot; Solve-and-reproduce</span>
+        <h3>Freeze it, then prove it again</h3>
+        <p>Authoring and use are separated. The producer solves the task interactively, then its conversation, tool history, and workspace are discarded. Only the frozen package &mdash; a <code>SKILL.md</code> plus resources and scripts &mdash; crosses into a fresh container, where a new agent must re-derive the solution from it. A pass certifies the deliverable, not the authoring trace.</p>
+      </div>
+      <div class="card">
+        <span class="tag">02 &middot; Blind surrogate verifier</span>
+        <h3>Dense feedback without leaking the answer</h3>
+        <p>The hidden grader says only pass or fail. For each candidate, a verifier that cannot see hidden tests, reference answers, or grader output writes <code>m</code> executable checks inferred from the task description alone. Their pass rate scores progress, and the failed-check descriptions tell the producer what to repair.</p>
+      </div>
+      <div class="card">
+        <span class="tag">03 &middot; Verifier-guided beam search</span>
+        <h3>Compute in, luck out</h3>
+        <p>Evolution is beam search over a solution-construction graph: sample initial candidates, keep the top <code>B</code> by surrogate score, refine each into <code>K</code> children, repeat for <code>D</code> depths. Breadth and depth become an explicit test-time-compute knob, and a keep-better rule guarantees the result never falls below the curated baseline.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="results">
+  <div class="wide">
+    <p class="sec-label">Results</p>
+    <div style="max-width: 46rem;">
+      <h2>First place on SkillsBench, from 14th-ranked ingredients</h2>
+      <p>DeepSeek-V4-Pro ranks 14th of 24 on the official leaderboard. Running it in the reSolve harness with the curated packages gives 60.1%, comparable to the 5th-ranked entry. Letting it self-evolve those packages reaches <strong>74.9%</strong> &mdash; 7.6 points above the strongest official curated-skill result, though official rows come from different harnesses. Pass@3 rises from 68.6% to 79.1%.</p>
+    </div>
+
+    <div class="table-scroll">
+      <table class="board" id="board">
+        <caption>SkillsBench v1.1 mean-of-3 scores, %. Medal shading marks the best three values per official column. Superscripts place reSolve rows against the official column.</caption>
+        <thead>
+          <tr>
+            <th>Rank</th><th>Model</th><th>Agent</th>
+            <th class="num">No skills</th><th class="num">Curated</th><th class="num">&Delta;</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="divider"><td colspan="6">reSolve results &middot; this work</td></tr>
+          <tr class="ours">
+            <td class="rank">&mdash;</td><td>DeepSeek V4 Pro</td><td class="sys">reSolve Self-Evolved</td>
+            <td class="num">30.6<span class="ranknote">14th</span></td><td class="num"><strong>74.9</strong><span class="ranknote">1st</span></td><td class="num">+44.3</td>
+          </tr>
+          <tr class="ours">
+            <td class="rank">&mdash;</td><td>DeepSeek V4 Pro</td><td class="sys">reSolve Curated</td>
+            <td class="num">30.6<span class="ranknote">14th</span></td><td class="num">60.1<span class="ranknote">5th</span></td><td class="num">+29.6</td>
+          </tr>
+          <tr class="ours">
+            <td class="rank">&mdash;</td><td>Gemma 4 31B</td><td class="sys">reSolve Self-Evolved</td>
+            <td class="num">14.7<span class="ranknote">24th</span></td><td class="num"><strong>41.4</strong><span class="ranknote">20th</span></td><td class="num">+26.7</td>
+          </tr>
+          <tr class="ours">
+            <td class="rank">&mdash;</td><td>Gemma 4 31B</td><td class="sys">reSolve Curated</td>
+            <td class="num">14.7<span class="ranknote">24th</span></td><td class="num">36.2<span class="ranknote">21st</span></td><td class="num">+21.5</td>
+          </tr>
+          <tr class="divider"><td colspan="6">Official leaderboard &middot; curated skills</td></tr>
+          <tr>
+            <td class="rank">1</td><td>GPT-5.5</td><td>OpenHands</td>
+            <td class="num medal-1">51.5</td><td class="num medal-1">67.3</td><td class="num">+15.8</td>
+          </tr>
+          <tr>
+            <td class="rank">2</td><td>GPT-5.5</td><td>Codex</td>
+            <td class="num medal-2">46.8</td><td class="num medal-2">66.5</td><td class="num">+19.7</td>
+          </tr>
+          <tr>
+            <td class="rank">3</td><td>Opus 4.7</td><td>Claude Code</td>
+            <td class="num">43.0</td><td class="num medal-3">61.2</td><td class="num">+18.2</td>
+          </tr>
+          <tr>
+            <td class="rank">4</td><td>Gemini 3.1 Pro</td><td>Gemini CLI</td>
+            <td class="num">36.0</td><td class="num">60.8</td><td class="num medal-3">+24.8</td>
+          </tr>
+          <tr>
+            <td class="rank">5</td><td>GLM 5.1</td><td>OpenHands</td>
+            <td class="num">32.7</td><td class="num">58.4</td><td class="num medal-1">+25.7</td>
+          </tr>
+          <tr class="fold"><td class="rank">6</td><td>Gemini 3 Flash</td><td>Gemini CLI</td><td class="num">34.2</td><td class="num">54.6</td><td class="num">+20.4</td></tr>
+          <tr class="fold"><td class="rank">7</td><td>Opus 4.8</td><td>OpenHands</td><td class="num medal-3">45.7</td><td class="num">54.1</td><td class="num">+8.4</td></tr>
+          <tr class="fold"><td class="rank">8</td><td>Kimi K2.6</td><td>OpenHands</td><td class="num">33.4</td><td class="num">54.0</td><td class="num">+20.6</td></tr>
+          <tr class="fold"><td class="rank">9</td><td>Opus 4.7</td><td>OpenHands</td><td class="num">42.1</td><td class="num">53.1</td><td class="num">+11.1</td></tr>
+          <tr class="fold"><td class="rank">10</td><td>MiniMax M3</td><td>OpenHands</td><td class="num">29.7</td><td class="num">53.0</td><td class="num">+23.3</td></tr>
+          <tr class="fold"><td class="rank">11</td><td>Gemini 3.1 Pro</td><td>OpenHands</td><td class="num">33.8</td><td class="num">52.8</td><td class="num">+19.0</td></tr>
+          <tr class="fold"><td class="rank">12</td><td>GPT-5.2</td><td>Codex</td><td class="num">29.7</td><td class="num">51.7</td><td class="num">+22.0</td></tr>
+          <tr class="fold"><td class="rank">13</td><td>Opus 4.6</td><td>Claude Code</td><td class="num">33.7</td><td class="num">50.2</td><td class="num">+16.5</td></tr>
+          <tr class="gap"><td colspan="6">&middot;&middot;&middot;</td></tr>
+          <tr>
+            <td class="rank">14</td><td>DeepSeek V4 Pro</td><td>OpenHands</td>
+            <td class="num">26.9</td><td class="num">50.1</td><td class="num">+23.2</td>
+          </tr>
+          <tr class="fold"><td class="rank">15</td><td>Opus 4.5</td><td>Claude Code</td><td class="num">23.8</td><td class="num">49.0</td><td class="num medal-2">+25.2</td></tr>
+          <tr class="fold"><td class="rank">16</td><td>Gemini 3.5 Flash</td><td>OpenHands</td><td class="num">41.1</td><td class="num">48.2</td><td class="num">+7.1</td></tr>
+          <tr class="fold"><td class="rank">17</td><td>Sonnet 4.6</td><td>OpenHands</td><td class="num">33.5</td><td class="num">47.2</td><td class="num">+13.6</td></tr>
+          <tr class="fold"><td class="rank">18</td><td>DeepSeek V4 Flash</td><td>OpenHands</td><td class="num">27.5</td><td class="num">44.7</td><td class="num">+17.2</td></tr>
+          <tr class="fold"><td class="rank">19</td><td>Grok 4.3</td><td>OpenHands</td><td class="num">22.8</td><td class="num">41.7</td><td class="num">+18.8</td></tr>
+          <tr class="fold"><td class="rank">20</td><td>GPT-5.4 Mini</td><td>OpenHands</td><td class="num">29.9</td><td class="num">41.4</td><td class="num">+11.5</td></tr>
+          <tr class="fold"><td class="rank">21</td><td>Sonnet 4.5</td><td>Claude Code</td><td class="num">16.7</td><td class="num">36.2</td><td class="num">+19.5</td></tr>
+          <tr class="fold"><td class="rank">22</td><td>MiniMax M2.7</td><td>OpenHands</td><td class="num">18.1</td><td class="num">34.9</td><td class="num">+16.8</td></tr>
+          <tr class="fold"><td class="rank">23</td><td>Haiku 4.5</td><td>Claude Code</td><td class="num">8.8</td><td class="num">30.1</td><td class="num">+21.3</td></tr>
+          <tr class="gap"><td colspan="6">&middot;&middot;&middot;</td></tr>
+          <tr>
+            <td class="rank">24</td><td>Gemini 3.1 Flash Lite</td><td>OpenHands</td>
+            <td class="num">16.0</td><td class="num">20.1</td><td class="num">+4.1</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <button class="board-toggle" id="board-toggle" aria-expanded="false" aria-controls="board">Show all 24 official entries</button>
+
+    <div class="fig-pair">
+      <figure>
+        <img src="assets/figures/paired.svg" alt="Scatter plot pairing each task's curated score against its self-evolved score. Most points sit on the diagonal; 25 tasks sit above it, many jumping from low curated scores to a perfect score.">
+        <figcaption><b>25 of 86 tasks improve, and the gains are heavy-tailed.</b> Of the improved tasks, 20 reach a perfect score across all three deployment trials; the 11 tasks gaining at least 50 points account for roughly two thirds of the total improvement.</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/figures/stability.svg" alt="Bar chart partitioning the 86 tasks by how many of three deployment trials fully pass, across conditions. Reliable three-of-three tasks grow from 12 with no skill to 37 curated to 56 self-evolved.">
+        <figcaption><b>Reliability rises along the condition ladder.</b> Tasks passing all three deployment trials grow from 12 (no skill) to 37 (curated) to 56 (self-evolved); full-pass trial slots grow from 72 to 148 to 188 of 258.</figcaption>
+      </figure>
+    </div>
+
+    <div style="max-width: 46rem; margin-top: 3rem;">
+      <h3 style="font-size: 1.3rem;">Every component earns its place</h3>
+      <p>Each ablation removes one component on the same 86 tasks; all three paired intervals exclude zero. The curated anchor contributes most, then beam search, then surrogate ranking.</p>
+      <table class="abl">
+        <thead>
+          <tr><th>Configuration</th><th class="num">Mean-of-3, %</th><th class="num">&Delta; vs full</th></tr>
+        </thead>
+        <tbody>
+          <tr class="full"><td>Full reSolve framework</td><td class="num">74.9</td><td class="num">&mdash;</td></tr>
+          <tr><td>w/o surrogate ranking</td><td class="num">66.0</td><td class="num">&minus;8.9<span class="ci">[&minus;14.3,&nbsp;&minus;4.5]</span></td></tr>
+          <tr><td>w/o beam search (greedy chain)</td><td class="num">59.4</td><td class="num">&minus;15.5<span class="ci">[&minus;20.3,&nbsp;&minus;11.3]</span></td></tr>
+          <tr><td>w/o curated anchor (from scratch)</td><td class="num">44.0</td><td class="num">&minus;30.9<span class="ci">[&minus;40.7,&nbsp;&minus;21.6]</span></td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top: 1.2rem;">From-scratch evolution is still far from ineffective: with no human-written skill at all, it lifts the 30.6% no-skill baseline to 44.0%, above mid-tier leaderboard entries running <em>with</em> curated packages. But refinement of an expert anchor remains the far more economical path.</p>
+    </div>
+
+    <figure>
+      <img src="assets/figures/categories.svg" alt="Bar chart of reSolve self-evolved mean reward across the eight official SkillsBench categories, from 92.9% on office and white-collar work down to 51.7% on software engineering. Natural science is highlighted at 87.6%.">
+      <figcaption><b>Where skills pay off.</b> reSolve is strongest where a well-specified deliverable can be produced by a scripted pipeline once the correct procedure is known, and weaker where tasks demand open-ended exploration (software engineering, cybersecurity, finance).</figcaption>
+    </figure>
+
+    <div class="callout" style="max-width: 46rem;">
+      <span class="tag">Natural science</span>
+      On the 14 official Natural Science tasks &mdash; astronomy, seismology, hydrology, materials, physical simulation, and biomedical analysis &mdash; reSolve Self-Evolved reaches <strong>87.6%</strong> mean reward, the second-highest category and well above the 74.9% overall average. Scripted analysis pipelines over scientific data, with a concrete checkable output, are exactly where the deployed system is most reliable.
+    </div>
+  </div>
+</section>
+
+<section id="findings">
+  <div class="col">
+    <p class="sec-label">What we learned</p>
+    <h2>A skill is finished when it removes decisions from its executor</h2>
+
+    <div class="finding">
+      <h3>Self-evolution is refinement, not genesis.</h3>
+      <p>Anchored on the curated package, the producer starts from working expert knowledge and only needs a task-specific improvement: +14.8 points. From scratch, the whole burden of exploration falls on the generator, and the result stays 30.9 points below the full framework. The benefit also scales with the model doing the evolving &mdash; Gemma&nbsp;4 31B gains +5.2 where DeepSeek gains +14.8 &mdash; so evolution amplifies capability rather than substituting for it.</p>
+    </div>
+
+    <div class="finding">
+      <h3>Reproduction pressure selects for executable code.</h3>
+      <p>All 77 retained evolved packages contain at least one executable entry point; the archive holds no prose-only package. A procedure externalized as code survives re-execution with far less interpretation than guidance a fresh agent must re-derive. Consistent with this, an agent-free arm that simply invokes the saved entry point reaches 71.4%, within 3.5 points of the full system.</p>
+    </div>
+
+    <div class="finding">
+      <h3>Remaining failures live in the executor, not the skill.</h3>
+      <p>Across 258 deployment trials, the agent rarely crashes; it completes confidently and produces files the grader rejects. Failed trials are not lazy either &mdash; on 11 of 14 tasks with both a passing and a failing trace, the failing one used <em>more</em> tool steps. Extra actions are not free: an agent that keeps acting after the bundled solver has produced a correct artifact can overwrite it.</p>
+    </div>
+
+    <div class="finding">
+      <h3>What makes a good skill package.</h3>
+      <p>Expose an entry point that carries out the procedure rather than describing decisions the agent must make. Pin dependencies, paths, inputs, outputs, and completion criteria. Make execution idempotent and checkpointed, so a valid intermediate artifact survives later recovery attempts. Assess quality at the package boundary &mdash; a pass certified by reSolve is one that search found <em>and a fresh agent then reproduced</em>. That is the difference between a skill and a lucky trajectory.</p>
+    </div>
+  </div>
+</section>
+
+<section id="bibtex">
+  <div class="col">
+    <p class="sec-label">Citation</p>
+    <h2>Citing this report</h2>
+    <div class="bib-wrap">
+      <button class="copy-btn" id="copy-bib" aria-label="Copy BibTeX to clipboard">Copy</button>
+      <pre class="bibtex" id="bib-text">@techreport{liu2026resolve,
+  title       = {Self-Evolving Skills via Surrogate-Guided
+                 Solve-and-Reproduce},
+  author      = {Liu, Jiale and Ren, Pinze and Xia, Yuqi and
+                 Wang, Huan and Zhao, Zhenlin and Dong, Siming},
+  institution = {Cleer Science},
+  year        = {2026}
+}</pre>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="col">
+    <div class="logos">
+      <img src="assets/figures/cleer.png" alt="Cleer Science">
+      <img src="assets/figures/uoe.svg" alt="The University of Edinburgh" class="tall">
+      <img src="assets/figures/tsinghua.png" alt="Tsinghua University">
+    </div>
+    <p class="fine">
+      reSolve &middot; Cleer Science &middot; 2026<br>
+      Correspondence: <a href="mailto:wanghuan@cleerlab.com">wanghuan@cleerlab.com</a> &middot;
+      <a href="assets/reSolve-paper.pdf" download="reSolve-paper.pdf">paper.pdf</a>
+    </p>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var board = document.getElementById("board");
+    var toggle = document.getElementById("board-toggle");
+    toggle.addEventListener("click", function () {
+      var open = board.classList.toggle("expanded");
+      toggle.textContent = open ? "Collapse leaderboard" : "Show all 24 official entries";
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+
+    var copy = document.getElementById("copy-bib");
+    copy.addEventListener("click", function () {
+      var text = document.getElementById("bib-text").textContent;
+      navigator.clipboard.writeText(text).then(function () {
+        copy.textContent = "Copied";
+        setTimeout(function () { copy.textContent = "Copy"; }, 1600);
+      });
+    });
+  })();
+</script>
+
+</body>
+</html>
