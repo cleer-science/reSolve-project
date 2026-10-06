@@ -181,6 +181,7 @@
   p + p { margin-top: 1rem; }
   .lede { font-size: 1.13rem; }
   strong { font-weight: 600; }
+  sup, sub { line-height: 0; }
   em { font-style: italic; }
 
   /* ============ at-a-glance chart ============ */
@@ -484,6 +485,127 @@
     line-height: 2;
   }
   footer .fine a { color: var(--muted); }
+
+  /* ============ scientific RSI ============ */
+  .announce {
+    margin-top: 1.6rem;
+    font-family: var(--mono);
+    font-size: 0.76rem;
+    line-height: 1.8;
+    color: var(--muted);
+  }
+  .announce a { color: var(--accent-deep); }
+  .announce .new {
+    display: inline-block;
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #fff;
+    background: var(--accent);
+    border-radius: 999px;
+    padding: 0.08rem 0.55rem;
+    margin-right: 0.6rem;
+    vertical-align: 0.1em;
+  }
+
+  .prose { max-width: 46rem; }
+
+  .sci-cases { display: grid; gap: 1rem; grid-template-columns: 1fr; margin-top: 2.2rem; }
+  @media (min-width: 620px) { .sci-cases { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 960px) { .sci-cases { grid-template-columns: repeat(3, 1fr); } }
+  .case-card {
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    background: #fff;
+    padding: 1.15rem 1.25rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    color: inherit;
+    text-decoration: none;
+    transition: border-color 0.18s ease;
+  }
+  a.case-card:hover { border-color: var(--accent); color: inherit; }
+  .case-card .tag {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .case-card .task { font-weight: 600; font-size: 1.02rem; margin-top: 0.35rem; }
+  .case-card .big {
+    font-size: 2.1rem;
+    font-weight: 500;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    color: var(--accent-deep);
+    margin-top: 0.5rem;
+    font-variant-numeric: lining-nums;
+  }
+  .case-card .what { font-size: 0.9rem; line-height: 1.5; margin-top: 0.2rem; }
+  .case-card .from {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    line-height: 1.5;
+    color: var(--faint);
+    margin-top: auto;
+    padding-top: 0.85rem;
+  }
+
+  @media (min-width: 620px) { .components.four { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 960px) { .components.four { grid-template-columns: repeat(4, 1fr); } }
+
+  .case { margin-top: 3.6rem; scroll-margin-top: 1.5rem; }
+  .case-kicker {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.45rem;
+  }
+  .case h3 { font-size: 1.3rem; font-weight: 500; margin-bottom: 0.7rem; }
+  .case h4 { font-size: 1.04rem; font-weight: 600; margin: 2rem 0 0.35rem; }
+
+  .stages { display: grid; gap: 0.7rem; margin-top: 1.4rem; max-width: 46rem; }
+  .stage { border: 1px solid var(--rule); border-radius: 8px; background: #fff; padding: 0.85rem 1.15rem 0.9rem; }
+  .stage.final { background: var(--tint); border-color: var(--tint); border-left: 3px solid var(--accent); }
+  .stage-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.4rem 1rem;
+    flex-wrap: wrap;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--faint);
+  }
+  .stage-head b { color: var(--accent); font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; }
+  .formula { font-size: 1.08rem; margin-top: 0.3rem; overflow-wrap: anywhere; }
+  .stage .score { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); margin-top: 0.15rem; }
+
+  .eq-wrap { overflow-x: auto; max-width: 46rem; margin-top: 1.6rem; }
+  .eq-wrap table.abl { margin-top: 0; min-width: 540px; }
+  .abl td.match { font-family: var(--mono); font-size: 0.76rem; color: var(--accent-deep); white-space: nowrap; }
+  .abl td.match.approx { color: var(--muted); }
+  .eq-note {
+    max-width: 46rem;
+    font-family: var(--mono);
+    font-size: 0.73rem;
+    line-height: 1.6;
+    color: var(--muted);
+    margin-top: 0.7rem;
+  }
+
+  .split { display: grid; gap: 1.8rem; grid-template-columns: 1fr; align-items: center; margin-top: 1.4rem; }
+  @media (min-width: 900px) { .split { grid-template-columns: 5fr 6fr; gap: 3rem; } }
+  .split figure { margin: 0; }
+
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1.4rem; }
+  .tile { border: 1px solid var(--rule); border-radius: 8px; background: #fff; padding: 0.8rem 1rem 0.85rem; }
+  .tile .v { font-size: 1.55rem; font-weight: 500; line-height: 1.2; color: var(--accent-deep); }
+  .tile .v small { font-size: 0.86rem; font-weight: 400; color: var(--ink); margin-left: 0.15rem; }
+  .tile .n { font-family: var(--mono); font-size: 0.66rem; line-height: 1.5; color: var(--faint); margin-top: 0.2rem; }
+
 </style>
 </head>
 <body>
@@ -503,6 +625,7 @@
       <a class="btn primary" href="https://arxiv.org/pdf/2608.28638">PDF</a>
       <a class="btn" href="#bibtex">BibTeX</a>
     </div>
+    <p class="announce"><span class="new">New</span>The same loop now evolves scientific programs &mdash; <a href="#science">six cases in integration, PDEs, and equation discovery</a></p>
   </div>
 </header>
 
@@ -701,7 +824,226 @@
 
     <div class="callout" style="max-width: 46rem;">
       <span class="tag">Natural science</span>
-      On the 14 official Natural Science tasks &mdash; astronomy, seismology, hydrology, materials, physical simulation, and biomedical analysis &mdash; reSolve Self-Evolved reaches <strong>87.6%</strong> mean reward, the second-highest category and well above the 74.9% overall average. Scripted analysis pipelines over scientific data, with a concrete checkable output, are exactly where the deployed system is most reliable.
+      On the 14 official Natural Science tasks &mdash; astronomy, seismology, hydrology, materials, physical simulation, and biomedical analysis &mdash; reSolve Self-Evolved reaches <strong>87.6%</strong> mean reward, the second-highest category and well above the 74.9% overall average. Scripted analysis pipelines over scientific data, with a concrete checkable output, are exactly where the deployed system is most reliable. In follow-up work we point the same loop at the scientific programs themselves &mdash; <a href="#science">see below</a>.
+    </div>
+  </div>
+</section>
+
+<section id="science">
+  <div class="wide">
+    <p class="sec-label">Scientific RSI &middot; follow-up</p>
+    <div class="prose">
+      <h2>From self-evolving skills to self-evolving scientific programs</h2>
+      <p>SkillsBench asks whether reSolve can evolve the package an agent consults. In follow-up work we point the same search&ndash;execute&ndash;evaluate loop at the scientific program itself: its numerical implementation, its choice of method, and the functional form of an equation. The model stays fixed (stock DeepSeek V4.1 Flash, no task-specific training); what evolves is an executable artifact, and every candidate is run and scored by an independent evaluator before it can be selected. We call this <em>scientific recursive self-improvement</em>: the method improves round after round against real computational feedback.</p>
+      <p>Six tasks in three families share one search, sandbox, and archive stack. Each final program is frozen on training and validation data before its held-out test split is opened.</p>
+    </div>
+
+    <div class="sci-cases">
+      <a class="case-card" href="#sci-integral">
+        <span class="tag">Accurate &middot; integration</span>
+        <span class="task">Semi-infinite oscillatory integrals</span>
+        <span class="big">72/72</span>
+        <span class="what">held-out test points within tolerance; 10.5 correct digits on average</span>
+        <span class="from">start: SciPy quad called directly, 29/72</span>
+      </a>
+      <a class="case-card" href="#sci-fast">
+        <span class="tag">Fast &middot; PDE</span>
+        <span class="task">1D heat equation (AlgoTune)</span>
+        <span class="big">2.88&times;</span>
+        <span class="what">5-repeat timing recheck, 8/8 cases correct; first measurement 3.15&times;</span>
+        <span class="from">start: AlgoTune reference solver</span>
+      </a>
+      <a class="case-card" href="#sci-fast">
+        <span class="tag">Fast &middot; reaction&ndash;diffusion</span>
+        <span class="task">2D Brusselator</span>
+        <span class="big">2.70&ndash;2.83&times;</span>
+        <span class="what">three independent runs, each 12/12 test cases correct</span>
+        <span class="from">start: SciPy BDF + analytic sparse Jacobian</span>
+      </a>
+      <a class="case-card" href="#sci-discover">
+        <span class="tag">Discover &middot; formula</span>
+        <span class="task">Feynman geometric optics</span>
+        <span class="big">Exact</span>
+        <span class="what"><i>y</i> = 1/(1/<i>x</i><sub>0</sub> + <i>x</i><sub>1</sub>/<i>x</i><sub>2</sub>), verified symbolically</span>
+        <span class="from">start: linear fit, test NMSE 0.49</span>
+      </a>
+      <a class="case-card" href="#sci-oscillator">
+        <span class="tag">Discover &middot; dynamics</span>
+        <span class="task">Nonlinear oscillator</span>
+        <span class="big">84,000&times;</span>
+        <span class="what">lower out-of-distribution error (NMSE 0.117 &rarr; 1.4&times;10<sup>&minus;6</sup>) in 24 calls, 87&nbsp;s</span>
+        <span class="from">start: linear equation</span>
+      </a>
+      <a class="case-card" href="#sci-bactgrow">
+        <span class="tag">Discover &middot; biology</span>
+        <span class="task">Bacterial growth</span>
+        <span class="big">48&times;</span>
+        <span class="what">lower out-of-distribution error (NMSE 1.20 &rarr; 0.025)</span>
+        <span class="from">start: linear equation</span>
+      </a>
+    </div>
+
+    <div class="case prose">
+      <p class="case-kicker">The loop</p>
+      <h3>One evolution tree, four modules</h3>
+      <p>Each node of the tree is a complete program or equation hypothesis. Scientists define the problem, its constraints, and the acceptance criteria; reSolve handles candidate generation, real execution, scoring, and the choice of where to search next. Strong nodes earn more expansions, but versions that fail or temporarily regress keep their full lineage and feedback, and stay eligible as parents.</p>
+    </div>
+    <div class="components four">
+      <div class="card">
+        <span class="tag">01 &middot; Task</span>
+        <h3>Define what counts</h3>
+        <p>The task, its starting program, the input/output contract, and an evaluation function: error tolerance, correctness checks, runtime, or fit quality.</p>
+      </div>
+      <div class="card">
+        <span class="tag">02 &middot; Select</span>
+        <h3>Choose a parent</h3>
+        <p>Pick the next starting point from the archived tree &mdash; by independent sampling, greedy refinement, or tree search over every version so far.</p>
+      </div>
+      <div class="card">
+        <span class="tag">03 &middot; Mutate &amp; evaluate</span>
+        <h3>Rewrite, then run it</h3>
+        <p>The model writes a full new program or hypothesis. It runs in an isolated process; a host-side evaluator it cannot see scores the result.</p>
+      </div>
+      <div class="card">
+        <span class="tag">04 &middot; Merge</span>
+        <h3>Archive and freeze</h3>
+        <p>Every version is archived with its score, including crashes and timeouts. The winner is chosen on training or validation data and frozen before the test split is loaded.</p>
+      </div>
+    </div>
+    <p class="prose" style="margin-top: 1.4rem;">Generated programs never see reference solutions, test labels, or the evaluator. Feedback is fast &mdash; seconds to tens of seconds per evaluation &mdash; which is what lets a full evolution run finish in about a minute.</p>
+
+    <!-- case 1 -->
+    <div class="case" id="sci-integral">
+      <div class="prose">
+        <p class="case-kicker">Case 1 &middot; Accurate</p>
+        <h3>Semi-infinite oscillatory integrals</h3>
+        <p>Fourier-type integrals over [0,&nbsp;&infin;) appear throughout wave physics and signal processing. When the integrand oscillates quickly and decays slowly, a general adaptive integrator can return a confident number that is simply wrong. The test split holds 72 points across four decay families with sine and cosine kernels and frequencies spanning three orders of magnitude.</p>
+        <p>Calling <code>scipy.integrate.quad</code> directly passes 29 of 72 points with 4.2 correct digits on average, and none of the 18 Lorentzian points. After 8 model calls (about 1.7 minutes) reSolve's program passes all 72 with 10.5 digits on average. It combines multiscale sampling, Fourier-weighted quadrature, fallbacks for anomalous inputs, and an asymptotic tail correction, and routes each input to a path by its features.</p>
+      </div>
+      <figure>
+        <picture>
+          <source media="(max-width: 640px)" srcset="assets/figures/sci-integral-narrow.svg">
+          <img src="assets/figures/sci-integral.svg" alt="Paired horizontal bar charts for four integrand families. Directly calling SciPy quad passes 9, 10, 10, and 0 of 18 test points for exponential, power-exponential, Gaussian, and Lorentzian families; the reSolve program passes 18 of 18 in every family. Mean correct digits rise from 6.3, 6.1, 3.4, and 0.9 to 14.5, 11.9, 7.8, and 7.6.">
+        </picture>
+        <figcaption><b>Where the general-purpose integrator fails, and what the evolved program recovers.</b> Tolerance 10<sup>&minus;10</sup> + 10<sup>&minus;7</sup>&middot;|truth| against high-precision analytic values. An expert-chosen SciPy weighted quadrature also passes 72/72: the gain is in choosing and composing the right tools without being told which.</figcaption>
+      </figure>
+    </div>
+
+    <!-- cases 2 and 3 -->
+    <div class="case" id="sci-fast">
+      <div class="prose">
+        <p class="case-kicker">Cases 2 &amp; 3 &middot; Fast</p>
+        <h3>Faster solvers, with correctness as a hard constraint</h3>
+        <p><strong>1D heat equation.</strong> In AlgoTune's heat-conduction task, every test case must still match the reference before speed counts. reSolve replaced repeated zero-padding and per-step memory allocation with a vectorized tridiagonal update over precomputed coefficients. All 8 test cases pass; the first measurement gives a 3.15&times; geometric-mean speedup, and a 5-repeat timing recheck gives a stable 2.88&times;.</p>
+        <p><strong>2D Brusselator.</strong> This classic model of chemical oscillation and Turing patterns couples diffusion, nonlinear reaction, and stiffness. The starting point is already strong: SciPy's BDF stiff solver with an analytic sparse Jacobian, with reference solutions cross-checked by Radau and BDF. Across three independent runs with different initial conditions, parameters, and seeds, the frozen programs pass 12/12 test cases at 2.83&times;, 2.70&times;, and 2.73&times;. The fastest programs independently adopted LSODA &mdash; never mentioned in the prompt &mdash; and dispatch between LSODA and BDF by problem size, with fallbacks and vectorized differencing.</p>
+      </div>
+      <div class="fig-pair">
+        <figure>
+          <img src="assets/figures/sci-heat.svg" alt="Bar chart of per-case speedups on eight heat-equation test cases with 60 to 480 grid points, ranging from 2.85 to 3.89 times; geometric mean 3.15 times, with a dashed line at the 2.88 times recheck.">
+          <figcaption><b>Heat equation: 8/8 correct, 2.85&ndash;3.89&times; per case.</b> Speedup against the AlgoTune reference on each test case; the dashed line is the 5-repeat recheck of the same frozen program.</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/figures/sci-brusselator.svg" alt="Horizontal bars for three Brusselator runs with held-out test speedups of 2.83, 2.70, and 2.73 times, each with all 12 test cases correct; recheck ticks sit at 2.80, 2.60, and 2.67 times.">
+          <figcaption><b>Brusselator: 12/12 correct in all three runs.</b> Each run tried three search strategies (6 model calls each) and froze the program fastest on validation. A post-hoc control that only swaps BDF for LSODA reaches 2.79&ndash;3.83&times;, so the gain is a better choice of method rather than a new algorithm.</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <!-- cases 4-6 -->
+    <div class="case" id="sci-discover">
+      <div class="prose">
+        <p class="case-kicker">Cases 4&ndash;6 &middot; Discover</p>
+        <h3>Searching over the law itself</h3>
+        <p>The first three tasks optimize how a known problem is solved. In equation discovery, the search target becomes the mathematical structure. In the two LLM-SR tasks, each candidate is an equation with free coefficients; a fixed optimizer fits them on training data, and the fit is what the next round sees.</p>
+
+        <h4>Case 4 &middot; Feynman geometric optics</h4>
+        <p>On a relation from the <em>Feynman Lectures</em> (SRSD-Feynman I.27.6), variables are anonymized as <i>x</i><sub>0</sub>, <i>x</i><sub>1</sub>, <i>x</i><sub>2</sub>; the model sees neither the equation's name nor its form. The evolved discovery program drives test NMSE from 0.49 to 2.7&times;10<sup>&minus;21</sup>. A single constant-refinement step on training data &mdash; no model call &mdash; then recovers the formula exactly.</p>
+      </div>
+      <div class="stages">
+        <div class="stage">
+          <div class="stage-head"><b>Start</b><span>linear fit</span></div>
+          <p class="formula"><i>y</i> &asymp; 0.0017 + 0.2092&thinsp;<i>x</i><sub>0</sub> &minus; 0.0012&thinsp;<i>x</i><sub>1</sub> + 0.1468&thinsp;<i>x</i><sub>2</sub></p>
+          <p class="score">test NMSE 0.49</p>
+        </div>
+        <div class="stage">
+          <div class="stage-head"><b>Evolved discovery program</b><span>8 model calls</span></div>
+          <p class="formula"><i>y</i> = 1&thinsp;/&thinsp;(1.05&times;10<sup>&minus;9</sup> + 0.999999999996&thinsp;<i>x</i><sub>1</sub>/<i>x</i><sub>2</sub> + 0.999999999999&thinsp;/&thinsp;<i>x</i><sub>0</sub>)</p>
+          <p class="score">test NMSE 2.7&times;10<sup>&minus;21</sup></p>
+        </div>
+        <div class="stage final">
+          <div class="stage-head"><b>Constant refinement</b><span>no model call &middot; training data only</span></div>
+          <p class="formula"><i>y</i> = 1&thinsp;/&thinsp;(1/<i>x</i><sub>0</sub> + <i>x</i><sub>1</sub>/<i>x</i><sub>2</sub>)</p>
+          <p class="score">test NMSE 0 &middot; symbolically equivalent to <i>f</i> = 1/(1/<i>d</i><sub>1</sub> + <i>n</i>/<i>d</i><sub>2</sub>) with <i>x</i><sub>0</sub>=<i>d</i><sub>1</sub>, <i>x</i><sub>1</sub>=<i>n</i>, <i>x</i><sub>2</sub>=<i>d</i><sub>2</sub></p>
+        </div>
+      </div>
+
+      <div class="prose" id="sci-oscillator" style="scroll-margin-top: 1.5rem;">
+        <h4>Case 5 &middot; Nonlinear oscillator</h4>
+        <p>From observations of time, position, and velocity (LLM-SR benchmark), predict acceleration. Training data cover <i>t</i>&nbsp;&isin;&nbsp;[30,&nbsp;50]; the out-of-distribution test covers the unseen window <i>t</i>&nbsp;&isin;&nbsp;[0,&nbsp;20], where position and velocity amplitudes reach 2.6&times; and 2.8&times; their training range. Selection uses training error only.</p>
+        <p>Search starts from a linear equation and progressively adds periodic forcing, nonlinear terms, and state coupling. At call 4 a candidate regressed to NMSE 0.18. The tree kept that branch; its child at call 5 introduced a new nonlinear damping structure and dropped training NMSE to 5.9&times;10<sup>&minus;10</sup>. After 24 model calls in 87&nbsp;s, the frozen equation reaches out-of-distribution NMSE 1.4&times;10<sup>&minus;6</sup> (R<sup>2</sup>&nbsp;=&nbsp;0.999999), about 84,000&times; lower than the linear start.</p>
+      </div>
+      <div class="fig-pair">
+        <figure>
+          <img src="assets/figures/sci-oscillator-evolution.svg" alt="Log-scale plot of training NMSE for 24 candidates. The lineage of the final equation goes from the linear start near 0.19 down to 2 times 10 to the minus 6, jumps back up to 0.18 at candidate 4, then falls to 5.9 times 10 to the minus 10 at candidate 5 and stays there through the final candidate 21. One failed run is marked.">
+          <figcaption><b>The breakthrough came from a branch that first got worse.</b> Training NMSE of every candidate; the teal path is the lineage of the final equation. A failed candidate is archived like any other.</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/figures/sci-oscillator-ood.svg" alt="Top: acceleration over time from 0 to 20 on the out-of-distribution window; the reSolve equation overlaps the ground truth while the linear start visibly misses peaks. Bottom: rolling RMS error on a log scale, around 10 to the minus 4 for reSolve versus 10 to the minus 1 for the linear start.">
+          <figcaption><b>Extrapolation to a window the search never saw.</b> Out-of-distribution NMSE in the legend; the bottom panel shows rolling RMS error over 0.1 time units.</figcaption>
+        </figure>
+      </div>
+      <div class="eq-wrap">
+        <table class="abl">
+          <thead>
+            <tr><th>Term</th><th>Generating equation</th><th>reSolve, frozen</th><th></th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Periodic forcing</td><td>0.3&thinsp;sin&thinsp;<i>t</i></td><td>0.3000&thinsp;sin(1.0000&thinsp;<i>t</i>)</td><td class="match">match</td></tr>
+            <tr><td>Cubic damping</td><td>&minus;0.5&thinsp;<i>v</i><sup>3</sup></td><td>&minus;0.5000&thinsp;<i>v</i><sup>3</sup></td><td class="match">match</td></tr>
+            <tr><td>Coupling</td><td>&minus;<i>x</i>&thinsp;<i>v</i></td><td>&minus;1.0000&thinsp;<i>x</i>&thinsp;<i>v</i></td><td class="match">match</td></tr>
+            <tr><td>Restoring force</td><td>&minus;5<i>x</i>&thinsp;e<sup>0.5<i>x</i></sup></td><td>&minus;5.0001<i>x</i> &minus; 2.5024<i>x</i><sup>2</sup> &minus; 0.6216<i>x</i><sup>3</sup></td><td class="match approx">&asymp; 3rd-order Taylor</td></tr>
+            <tr><td>Extra terms</td><td>&mdash;</td><td>linear damping, forcing drift</td><td class="match approx">coef. ~10<sup>&minus;6</sup></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="eq-note">Against the LLM-SR generating equation, the three exactly recoverable terms are within 0.01% of their true coefficients. The exponential restoring force, which is not in a polynomial search space, is matched by its Taylor expansion &minus;5<i>x</i> &minus; 2.5<i>x</i><sup>2</sup> &minus; 0.625<i>x</i><sup>3</sup>, within 0.3% across the test range.</p>
+
+      <div class="split" id="sci-bactgrow" style="scroll-margin-top: 1.5rem;">
+        <div>
+          <h4 style="margin-top: 0;">Case 6 &middot; Bacterial growth</h4>
+          <p>Predict <i>E.&nbsp;coli</i> growth rate from population density, substrate concentration, temperature, and pH (LLM-SR benchmark). In the run with the lowest training error, out-of-distribution NMSE falls from 1.20 to 0.025, about 48&times; lower.</p>
+          <p>The evolved equation contains a Monod substrate term, <i>&mu;BS</i>/(<i>K</i>&nbsp;+&nbsp;<i>S</i>), the same form as the substrate term in the generating equation. For the non-standard temperature and pH responses, it fits bell-shaped approximations centred near 35&nbsp;&deg;C and pH&nbsp;7.0.</p>
+        </div>
+        <figure>
+          <img src="assets/figures/sci-bactgrow.svg" alt="Two parity plots of predicted versus true growth rate on 15,000 out-of-distribution samples. The linear start predicts a nearly flat band near zero (NMSE 1.20); the reSolve equation follows the diagonal closely (NMSE 0.025).">
+          <figcaption><b>15,000 out-of-distribution samples.</b> Closer to the diagonal is better.</figcaption>
+        </figure>
+      </div>
+      <p class="prose" style="margin-top: 2rem;">From geometric optics to nonlinear dynamics to a multivariate biochemical system, only the task definition, search space, and evaluation function change. The same machinery covers program optimization, numerical-method search, and equation discovery.</p>
+    </div>
+
+    <!-- cost -->
+    <div class="case" id="sci-cost">
+      <p class="case-kicker">Cost</p>
+      <div class="split" style="margin-top: 0;">
+        <div>
+          <h3>About a cent per evolution run</h3>
+          <p>Every experiment uses stock DeepSeek V4.1 Flash with no task-specific training or fine-tuning. Across 30 formal runs, the median run takes 75&nbsp;s and about 1.1&cent; of model calls. Counting everything &mdash; early exploration, controls, and failed attempts &mdash; the science work used 504 model calls and about 1.2M tokens.</p>
+          <div class="tiles">
+            <div class="tile"><div class="v">504<small>calls</small></div><div class="n">all science experiments, incl. exploration and failures</div></div>
+            <div class="tile"><div class="v">1.2M<small>tokens</small></div><div class="n">input and output combined</div></div>
+            <div class="tile"><div class="v">$0.68</div><div class="n">total model cost, estimated at public peak API prices</div></div>
+            <div class="tile"><div class="v">75&nbsp;s<small>&middot; 1.1&cent;</small></div><div class="n">median wall-clock time and cost per run</div></div>
+          </div>
+        </div>
+        <figure>
+          <img src="assets/figures/sci-cost.svg" alt="Scatter plot of model cost in US cents versus wall-clock seconds for 30 evolution runs, colored by task family. Most runs take 50 to 120 seconds and cost 0.5 to 3 cents; one run takes 231 seconds. Medians are 75 seconds and 1.1 cents.">
+          <figcaption><b>Each point is one complete evolution run</b> (6&ndash;24 model calls). Costs are estimated from logged tokens, not invoices.</figcaption>
+        </figure>
+      </div>
+      <div class="prose" style="margin-top: 2rem;">
+        <p>One condition matters as much as the model: <strong>verification is fast.</strong> Integration accuracy, solver speed, and equation error can each be checked in seconds, so many rounds fit in a minute. Carrying this into materials, chemistry, energy, and semiconductors moves the bottleneck to physical verification &mdash; how quickly and credibly high-throughput simulation, multiphysics models, surrogates, instruments, and automated labs can close the same loop. That is the next step for this line of work.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -736,16 +1078,20 @@
 <section id="bibtex">
   <div class="col">
     <p class="sec-label">Citation</p>
-    <h2>Citing this report</h2>
+    <h2>Citing this paper</h2>
     <div class="bib-wrap">
       <button class="copy-btn" id="copy-bib" aria-label="Copy BibTeX to clipboard">Copy</button>
-      <pre class="bibtex" id="bib-text">@techreport{liu2026resolve,
-  title       = {Self-Evolving Skills via Surrogate-Guided
-                 Solve-and-Reproduce},
-  author      = {Liu, Jiale and Ren, Pinze and Xia, Yuqi and
-                 Wang, Huan and Zhao, Zhenlin and Dong, Siming},
-  institution = {Cleer Science},
-  year        = {2026}
+      <pre class="bibtex" id="bib-text">@misc{liu2026resolve,
+  title         = {Self-Evolving Skills via Surrogate-Guided
+                   Solve-and-Reproduce},
+  author        = {Liu, Jiale and Ren, Pinze and Xia, Yuqi and
+                   Wang, Huan and Zhao, Zhenlin and Dong, Siming},
+  year          = {2026},
+  eprint        = {2608.28638},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.AI},
+  doi           = {10.48550/arXiv.2608.28638},
+  url           = {https://arxiv.org/abs/2608.28638}
 }</pre>
     </div>
   </div>
